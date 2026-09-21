@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#eef7fb"/>
+  <circle cx="900" cy="110" r="250" fill="#b9e2f2" opacity=".55"/>
+  <circle cx="1080" cy="510" r="330" fill="#d4ecf7" opacity=".8"/>
+  <path d="M80 140h130M80 164h360M80 460h920" stroke="#17354a" stroke-opacity=".18"/>
+  <text x="80" y="300" fill="#17354a" font-family="Arial, sans-serif" font-size="82" font-weight="700">Amin Aziz</text>
+  <text x="80" y="366" fill="#3f6175" font-family="Arial, sans-serif" font-size="38">Business Analyst</text>
+  <text x="80" y="432" fill="#17354a" font-family="Arial, sans-serif" font-size="30">Clarity for better delivery decisions.</text>
+</svg>
