@@ -70,7 +70,7 @@ export const portfolio = {
     },
     {
       title: 'Validation & Delivery',
-      items: ['User acceptance testing', 'Factory acceptance testing', 'System integration testing', 'API testing'],
+      items: ['System requirement specification (SRS)', 'User acceptance testing (UAT)', 'Final acceptance testing (FAT)', 'System integration testing (SIT)', 'API testing'],
     },
     {
       title: 'Tools I Use',
