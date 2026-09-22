@@ -296,7 +296,7 @@ function App() {
 
         <section id="contact" className="contact section-wrap" aria-labelledby="contact-title">
           <p className="eyebrow" data-reveal>Contact</p>
-          <h2 id="contact-title" data-reveal>Have a role or problem worth exploring?</h2>
+          <h2 id="contact-title" data-reveal>Open to the right opportunity and meaningful work.</h2>
           <div className="contact-links">
             <a className="contact-link-card" data-magnetic data-reveal href={portfolio.linkedin} target="_blank" rel="noreferrer" aria-label="Visit Amin Aziz on LinkedIn">
               <span className="contact-link-head"><span className="contact-icon"><LinkedInIcon /></span><span className="contact-link-type">LinkedIn</span></span>
