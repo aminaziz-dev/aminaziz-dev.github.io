@@ -49,6 +49,29 @@ function Atmosphere() {
         context.arc(adjustedX, adjustedY, Number(radius), 0, Math.PI * 2)
         context.fill()
       })
+      const flows = [
+        [[0.07, 0.22], [0.24, 0.31], [0.4, 0.2], [0.58, 0.35], [0.79, 0.23]],
+        [[0.16, 0.61], [0.34, 0.53], [0.49, 0.67], [0.66, 0.56], [0.88, 0.7]],
+        [[0.04, 0.84], [0.22, 0.73], [0.38, 0.84], [0.57, 0.78], [0.76, 0.89]],
+      ]
+      flows.forEach((flow, flowIndex) => {
+        const points = flow.map(([x, y], index) => ({
+          x: x * rect.width + (pointer.x - 0.5) * (18 + index * 2),
+          y: y * rect.height + (pointer.y - 0.5) * (12 + flowIndex * 4),
+        }))
+        context.beginPath()
+        points.forEach((point, index) => index === 0 ? context.moveTo(point.x, point.y) : context.lineTo(point.x, point.y))
+        context.strokeStyle = `rgba(49, 126, 163, ${0.1 + flowIndex * 0.018})`
+        context.lineWidth = 1
+        context.stroke()
+        points.forEach((point, index) => {
+          const pulse = 1 + Math.sin(t * 18 + index + flowIndex) * 0.18
+          context.fillStyle = index === 2 ? 'rgba(210, 116, 69, .44)' : 'rgba(49, 126, 163, .34)'
+          context.beginPath()
+          context.arc(point.x, point.y, 2.2 * pulse, 0, Math.PI * 2)
+          context.fill()
+        })
+      })
       frame = requestAnimationFrame(render)
     }
     const handlePointer = (event: PointerEvent) => {
@@ -94,7 +117,7 @@ function GlassCursor() {
       targetY = event.clientY
       cursor.dataset.visible = 'true'
       const target = event.target as Element
-      cursor.dataset.active = String(Boolean(target.closest('a, button, .capability-card, .journey-card')))
+      cursor.dataset.active = String(Boolean(target.closest('a, button, [data-magnetic], .journey-card')))
     }
     const handleLeave = () => { cursor.dataset.visible = 'false' }
     window.addEventListener('pointermove', handleMove, { passive: true })
@@ -110,6 +133,37 @@ function GlassCursor() {
   return <div ref={cursorRef} className="glass-cursor" data-enabled={enabled} data-visible="false" data-active="false" aria-hidden="true" />
 }
 
+function MagneticTargets() {
+  useEffect(() => {
+    const precisePointer = window.matchMedia('(pointer: fine)')
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (!precisePointer.matches || reduced.matches) return
+    const targets = Array.from(document.querySelectorAll<HTMLElement>('[data-magnetic]'))
+    const cleanups = targets.map((target) => {
+      const handleMove = (event: PointerEvent) => {
+        const rect = target.getBoundingClientRect()
+        const x = ((event.clientX - rect.left) / rect.width - 0.5) * 5
+        const y = ((event.clientY - rect.top) / rect.height - 0.5) * 5
+        target.style.setProperty('--magnet-x', `${x}px`)
+        target.style.setProperty('--magnet-y', `${y}px`)
+      }
+      const reset = () => {
+        target.style.setProperty('--magnet-x', '0px')
+        target.style.setProperty('--magnet-y', '0px')
+      }
+      target.addEventListener('pointermove', handleMove)
+      target.addEventListener('pointerleave', reset)
+      return () => {
+        target.removeEventListener('pointermove', handleMove)
+        target.removeEventListener('pointerleave', reset)
+      }
+    })
+    return () => cleanups.forEach((cleanup) => cleanup())
+  }, [])
+
+  return null
+}
+
 function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return <span className={diagonal ? 'arrow diagonal' : 'arrow'} aria-hidden="true">↗</span>
 }
@@ -123,6 +177,21 @@ function EmailIcon() {
 }
 
 function App() {
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const items = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'))
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible')
+          observer.unobserve(entry.target)
+        }
+      })
+    }, { threshold: 0.12 })
+    items.forEach((item) => observer.observe(item))
+    return () => observer.disconnect()
+  }, [])
+
   const profileSchema = {
     '@context': 'https://schema.org',
     '@type': 'Person',
@@ -137,6 +206,7 @@ function App() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileSchema) }} />
       <Atmosphere />
       <GlassCursor />
+      <MagneticTargets />
       <a className="skip-link" href="#capabilities">Skip to content</a>
       <header className="site-header">
         <NavMark />
@@ -155,10 +225,10 @@ function App() {
             <div>
               <h1 id="hero-title">Clarifying business needs so teams can deliver the <em>right</em> solutions.</h1>
             </div>
-            <div className="hero-side">
+            <div className="hero-side" data-reveal>
               <p>{portfolio.summary}</p>
               <div className="hero-actions">
-                <a className="button button-primary" href="#capabilities">Explore capabilities <Arrow /></a>
+                <a className="button button-primary" data-magnetic href="#capabilities">Explore capabilities <Arrow /></a>
               </div>
             </div>
           </div>
@@ -170,14 +240,14 @@ function App() {
         </section>
 
         <section id="capabilities" className="section-wrap section-space" aria-labelledby="capabilities-title">
-          <div className="section-heading">
+          <div className="section-heading" data-reveal>
             <p className="eyebrow">How I help</p>
             <h2 id="capabilities-title">Clear thinking at every point of delivery.</h2>
             <p className="section-intro">From the first conversation to validation, I make the work around a solution easier to see, discuss and act on.</p>
           </div>
           <div className="capability-grid">
-            {portfolio.capabilities.map((capability) => (
-              <article className="capability-card" key={capability.label}>
+            {portfolio.capabilities.map((capability, index) => (
+              <article className="capability-card" data-magnetic data-reveal style={{ '--reveal-delay': `${index * 70}ms` } as React.CSSProperties} key={capability.label}>
                 <div className="card-top"><span>{capability.label}</span><Arrow diagonal /></div>
                 <h3>{capability.title}</h3>
                 <p>{capability.description}</p>
@@ -190,13 +260,13 @@ function App() {
         </section>
 
         <section id="journey" className="section-wrap section-space journey-section" aria-labelledby="journey-title">
-          <div className="section-heading split-heading">
+          <div className="section-heading split-heading" data-reveal>
             <div><p className="eyebrow">Career journey</p><h2 id="journey-title">A practical bridge between business and technology.</h2></div>
             <p className="section-intro">Each role has sharpened the same instinct: understand what people need, make the path visible and support delivery with care.</p>
           </div>
           <ol className="journey-list">
-            {portfolio.journey.map((role) => (
-              <li className="journey-card" key={`${role.company}-${role.title}`}>
+            {portfolio.journey.map((role, index) => (
+              <li className="journey-card" data-reveal style={{ '--reveal-delay': `${index * 65}ms` } as React.CSSProperties} key={`${role.company}-${role.title}`}>
                 <p className="journey-period">{role.period}</p>
                 <div className="journey-main"><p className="journey-company">{role.company}</p><h3>{role.title}</h3></div>
                 <div className="journey-detail"><p>{role.description}</p><div>{role.focus.map((item) => <span key={item}>{item}</span>)}</div></div>
@@ -206,10 +276,10 @@ function App() {
         </section>
 
         <section className="section-wrap section-space methods-section" aria-labelledby="methods-title">
-          <div className="section-heading"><p className="eyebrow">Tools & methods</p><h2 id="methods-title">The details that keep work moving.</h2></div>
+          <div className="section-heading" data-reveal><p className="eyebrow">Tools & methods</p><h2 id="methods-title">The details that keep work moving.</h2></div>
           <div className="methods-grid">
             {portfolio.methods.map((method, index) => (
-              <article className="method" key={method.title}>
+              <article className="method" data-reveal style={{ '--reveal-delay': `${index * 70}ms` } as React.CSSProperties} key={method.title}>
                 <span className="method-number">0{index + 1}</span>
                 <h3>{method.title}</h3>
                 <ul>{method.items.map((item) => <li key={item}>{item}</li>)}</ul>
@@ -218,21 +288,21 @@ function App() {
           </div>
         </section>
 
-        <section id="about" className="section-wrap section-space about-section" aria-labelledby="about-title">
+        <section id="about" className="section-wrap section-space about-section" data-reveal aria-labelledby="about-title">
           <div className="about-index"><span>04</span><span className="index-line" /></div>
           <div><p className="eyebrow">About Amin</p><h2 id="about-title">The best analysis brings people closer to the decision.</h2></div>
           <p className="about-copy">{portfolio.about}</p>
         </section>
 
         <section id="contact" className="contact section-wrap" aria-labelledby="contact-title">
-          <p className="eyebrow">Contact</p>
-          <h2 id="contact-title">Have a role or problem worth exploring?</h2>
+          <p className="eyebrow" data-reveal>Contact</p>
+          <h2 id="contact-title" data-reveal>Have a role or problem worth exploring?</h2>
           <div className="contact-links">
-            <a className="contact-link-card" href={portfolio.linkedin} target="_blank" rel="noreferrer" aria-label="Visit Amin Aziz on LinkedIn">
+            <a className="contact-link-card" data-magnetic data-reveal href={portfolio.linkedin} target="_blank" rel="noreferrer" aria-label="Visit Amin Aziz on LinkedIn">
               <span className="contact-link-head"><span className="contact-icon"><LinkedInIcon /></span><span className="contact-link-type">LinkedIn</span></span>
               <span className="contact-link-title">Professional profile <Arrow /></span>
             </a>
-            <a className="contact-link-card" href={`mailto:${portfolio.email}`} aria-label={`Email ${portfolio.email}`}>
+            <a className="contact-link-card" data-magnetic data-reveal style={{ '--reveal-delay': '70ms' } as React.CSSProperties} href={`mailto:${portfolio.email}`} aria-label={`Email ${portfolio.email}`}>
               <span className="contact-link-head"><span className="contact-icon"><EmailIcon /></span><span className="contact-link-type">Email</span></span>
               <span className="contact-link-title">{portfolio.email} <Arrow /></span>
             </a>
