@@ -2,6 +2,7 @@ export const portfolio = {
   name: 'Amin Aziz',
   role: 'Business Analyst',
   email: 'mhd.aminaziz@gmail.com',
+  linkedin: 'https://www.linkedin.com/in/mhdaminaziz',
   location: 'Cyberjaya, Selangor',
   summary:
     'I connect business needs, people, processes and data to help teams build the right solutions and improve how work gets done.',

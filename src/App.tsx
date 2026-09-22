@@ -114,6 +114,14 @@ function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return <span className={diagonal ? 'arrow diagonal' : 'arrow'} aria-hidden="true">↗</span>
 }
 
+function LinkedInIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.2 8.7v10.1M5.2 5.3v.1M9.7 18.8v-5.9c0-2.4 1.5-4.2 3.8-4.2 2.4 0 3.7 1.7 3.7 4.2v5.9M9.7 13.1c0-2.7 1.5-4.4 3.9-4.4" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" /></svg>
+}
+
+function EmailIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2" stroke="currentColor" strokeWidth="1.9" /><path d="m4.8 7 7.2 5.5L19.2 7" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg>
+}
+
 function App() {
   const profileSchema = {
     '@context': 'https://schema.org',
@@ -151,7 +159,6 @@ function App() {
               <p>{portfolio.summary}</p>
               <div className="hero-actions">
                 <a className="button button-primary" href="#capabilities">Explore capabilities <Arrow /></a>
-                <a className="button button-secondary" href={`mailto:${portfolio.email}`}>Get in touch <Arrow /></a>
               </div>
             </div>
           </div>
@@ -220,7 +227,16 @@ function App() {
         <section id="contact" className="contact section-wrap" aria-labelledby="contact-title">
           <p className="eyebrow">Contact</p>
           <h2 id="contact-title">Have a role or problem worth exploring?</h2>
-          <a className="contact-email" href={`mailto:${portfolio.email}`}>{portfolio.email} <Arrow /></a>
+          <div className="contact-links">
+            <a className="contact-link-card" href={portfolio.linkedin} target="_blank" rel="noreferrer" aria-label="Visit Amin Aziz on LinkedIn">
+              <span className="contact-link-head"><span className="contact-icon"><LinkedInIcon /></span><span className="contact-link-type">LinkedIn</span></span>
+              <span className="contact-link-title">Professional profile <Arrow /></span>
+            </a>
+            <a className="contact-link-card" href={`mailto:${portfolio.email}`} aria-label={`Email ${portfolio.email}`}>
+              <span className="contact-link-head"><span className="contact-icon"><EmailIcon /></span><span className="contact-link-type">Email</span></span>
+              <span className="contact-link-title">{portfolio.email} <Arrow /></span>
+            </a>
+          </div>
           <div className="contact-meta"><span>{portfolio.location}</span><span>Available for Business Analyst, Project Management, Product or tech-hybrid opportunities</span></div>
         </section>
       </main>
